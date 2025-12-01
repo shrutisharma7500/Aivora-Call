@@ -23,45 +23,70 @@ import {
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 const formSchema = z.object({
-  name:z.string().min(1,{message:"Name is required"}),
+    name: z.string().min(1, { message: "Name is required" }),
     email: z.string().email(),
     password: z.string().min(1, { message: "Password is required" }),
     confirmPassword: z.string().min(1, { message: "Password is required" }),
 })
-.refine((data)=>data.password === data.confirmPassword,{
-  message: "passwords don't match",
-  path:["confirmPassword"]
-})
+    .refine((data) => data.password === data.confirmPassword, {
+        message: "passwords don't match",
+        path: ["confirmPassword"]
+    })
 
 export const SignUpView = () => {
+    
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
-    const [pending,setPending]=useState(false);
+    const [pending, setPending] = useState(false);
     // console.log("SignInView Rendered");
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-          name:"",
+            name: "",
             email: "",
             password: "",
-            confirmPassword:"",
+            confirmPassword: "",
         }
     });
-    const onSubmit =  (data: z.infer<typeof formSchema>) => {
+    const onSubmit = (data: z.infer<typeof formSchema>) => {
         setError(null);
         setPending(true);
-           authClient.signUp.email(
+        authClient.signUp.email(
             {
-              name:data.name,
+                name: data.name,
                 email: data.email,
                 password: data.password,
-                
+                callbackURL:"/"
+
             }, {
             onSuccess: () => {
                 setPending(false);
                 router.push("/")
             },
-            onError:({error})=>{
+            onError: ({ error }) => {
+                setError(error.message)
+            }
+        }
+
+
+        )
+
+
+    };
+      const onSocial = (provider: "github" | "google") => {
+        setError(null);
+        setPending(true);
+        authClient.signIn.social(
+            {
+                provider: provider,
+                callbackURL:"/"
+
+            }, {
+            onSuccess: () => {
+                setPending(false);
+                router.push("/")
+            },
+            onError: ({ error }) => {
                 setError(error.message)
             }
         }
@@ -80,7 +105,7 @@ export const SignUpView = () => {
                             <div className="flex flex-col gap-6">
                                 <div className="flex flex-col items-center text-center">
                                     <h1>
-                                       Let&apos;s get started
+                                        Let&apos;s get started
                                     </h1>
                                     <p className="text-muted-foreground text-balance">Create Account
 
@@ -93,14 +118,14 @@ export const SignUpView = () => {
                                         name="name"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email</FormLabel>
+                                                <FormLabel>Name</FormLabel>
                                                 <FormControl>
                                                     <Input
                                                         type="text"
                                                         placeholder="Shruti Sharma"
                                                         {...field}
                                                     />
-                                                    
+
                                                 </FormControl>
                                                 <FormMessage />
 
@@ -119,7 +144,7 @@ export const SignUpView = () => {
                                                         placeholder="m@example.com"
                                                         {...field}
                                                     />
-                                                    
+
                                                 </FormControl>
                                                 <FormMessage />
 
@@ -172,8 +197,8 @@ export const SignUpView = () => {
                                     </Alert>
                                 )}
                                 <Button
-                                disabled={pending}
-                                 type="submit"
+                                    disabled={pending}
+                                    type="submit"
 
                                     className="w-full">
                                     Sign-in
@@ -186,7 +211,9 @@ export const SignUpView = () => {
                                 <div className="grid grid-cols-2 gap-4"
                                 >
                                     <Button
-                                    disabled={pending}
+                                        disabled={pending}
+                                          onClick={()=>
+                                            onSocial("google")}
                                         variant="outline"
                                         type="button"
                                         className="w-full">
@@ -195,7 +222,9 @@ export const SignUpView = () => {
                                     </Button>
 
                                     <Button
-                                    disabled={pending}
+                                        onClick={() => {onSocial("github")
+                                        }}
+                                        disabled={pending}
                                         variant="outline"
                                         type="button"
                                         className="w-full">

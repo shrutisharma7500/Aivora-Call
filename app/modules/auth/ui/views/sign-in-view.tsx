@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import {FaGithub, FaGoogle} from "react-icons/fa"
 
 
 
@@ -38,6 +39,7 @@ export const SignInView = () => {
         defaultValues: {
             email: "",
             password: "",
+            
         }
     });
     const onSubmit =  (data: z.infer<typeof formSchema>) => {
@@ -47,12 +49,36 @@ export const SignInView = () => {
             {
                 email: data.email,
                 password: data.password,
+                callbackURL:"/",
             }, {
             onSuccess: () => {
                 setPending(false);
                 router.push("/")
             },
             onError:({error})=>{
+                setError(error.message)
+            }
+        }
+
+
+        )
+
+
+    };
+     const onSocial = (provider: "github" | "google") => {
+        setError(null);
+        setPending(true);
+        authClient.signIn.social(
+            {
+                provider: provider,
+                callbackURL:"/"
+
+            }, {
+            onSuccess: () => {
+                setPending(false);
+                router.push("/")
+            },
+            onError: ({ error }) => {
                 setError(error.message)
             }
         }
@@ -140,19 +166,25 @@ export const SignInView = () => {
                                 >
                                     <Button
                                     disabled={pending}
+                                     onClick={()=>
+                                        onSocial("google")}
                                         variant="outline"
                                         type="button"
                                         className="w-full">
                                         Google
+                                        <FaGoogle/>
 
                                     </Button>
 
                                     <Button
                                     disabled={pending}
+                                    onClick={()=>
+                                        onSocial("github")}
                                         variant="outline"
                                         type="button"
                                         className="w-full">
                                         Github
+                                        <FaGithub/>
                                     </Button>
 
                                 </div>
